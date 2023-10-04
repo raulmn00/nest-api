@@ -1,26 +1,71 @@
-import { Injectable } from '@nestjs/common';
-import { CreatePessoaDto } from './dto/create-pessoa.dto';
-import { UpdatePessoaDto } from './dto/update-pessoa.dto';
+import { Injectable, UnprocessableEntityException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class PessoasService {
-  create(createPessoaDto: CreatePessoaDto) {
-    return 'This action adds a new pessoa';
+  constructor(private readonly prisma: PrismaService) {}
+  async create(dados: any) {
+    const nascimentoFormatado = new Date(dados.nascimento);
+    nascimentoFormatado.setFullYear(nascimentoFormatado.getFullYear() - 18);
+
+    const stacks: any = dados.stacks.split(',');
+
+    try {
+      return this.prisma.pessoas.create({
+        data: {
+          nome: dados.nome,
+          apelido: dados.apelido,
+          nascimento: nascimentoFormatado.toISOString(),
+          stacks,
+        },
+      });
+    } catch (err) {
+      console.log(err);
+      throw new UnprocessableEntityException('UnprocessableEntityException', {
+        cause: new Error(err),
+        description: 'Invalid data.',
+      });
+    }
   }
 
-  findAll() {
-    return `This action returns all pessoas`;
+  async findAll() {
+    const todos = await this.prisma.pessoas.findMany({});
+    return todos;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} pessoa`;
+  async findOne(id: string) {
+    return this.prisma.pessoas.findUnique({
+      where: {
+        id,
+      },
+    });
   }
 
-  update(id: number, updatePessoaDto: UpdatePessoaDto) {
-    return `This action updates a #${id} pessoa`;
+  count() {
+    return this.prisma.pessoas.count();
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} pessoa`;
+  async search(termo: string) {
+    return this.prisma.pessoas.findMany({
+      where: {
+        OR: [
+          {
+            apelido: {
+              contains: termo,
+            },
+          },
+          {
+            nome: {
+              contains: termo,
+            },
+          },
+          {
+            stacks: {
+              array_contains: termo,
+            },
+          },
+        ],
+      },
+    });
   }
 }

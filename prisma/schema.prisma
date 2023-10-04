@@ -16,17 +16,7 @@ model Pessoas {
   nascimento DateTime
   apelido    String   @db.VarChar(32)
 
-  stacks Stacks[]
+  stacks Json?
 
   @@map("pessoas")
-}
-
-model Stacks {
-  id     String @id @default(uuid())
-  titulo String @db.VarChar(32)
-
-  pessoaId String
-  pessoa   Pessoas? @relation(fields: [pessoaId], references: [id])
-
-  @@map("stacks")
 }

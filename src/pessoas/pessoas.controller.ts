@@ -6,37 +6,38 @@ import {
   Patch,
   Param,
   Delete,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { PessoasService } from './pessoas.service';
 import { CreatePessoaDto } from './dto/create-pessoa.dto';
 import { UpdatePessoaDto } from './dto/update-pessoa.dto';
 
-@Controller('pessoas')
+@Controller('/pessoas')
 export class PessoasController {
   constructor(private readonly pessoasService: PessoasService) {}
 
-  @Post()
-  create(@Body() createPessoaDto: CreatePessoaDto) {
-    return this.pessoasService.create(createPessoaDto);
+  @Post('/')
+  @HttpCode(HttpStatus.CREATED)
+  create(@Body() body: CreatePessoaDto) {
+    return this.pessoasService.create(body);
   }
 
-  @Get()
+  @Get('/')
+  @HttpCode(HttpStatus.OK)
   findAll() {
     return this.pessoasService.findAll();
   }
 
-  @Get(':id')
+  @Get('/:id')
+  @HttpCode(HttpStatus.OK)
   findOne(@Param('id') id: string) {
-    return this.pessoasService.findOne(+id);
+    return this.pessoasService.findOne(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePessoaDto: UpdatePessoaDto) {
-    return this.pessoasService.update(+id, updatePessoaDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.pessoasService.remove(+id);
+  @Get('/contagem-pessoas')
+  @HttpCode(HttpStatus.OK)
+  async count() {
+    return this.pessoasService.count();
   }
 }
